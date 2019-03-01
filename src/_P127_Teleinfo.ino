@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <ESPEasy-Globals.h>
+#include <LibTeleinfo.h>
 // #include <WebServer.ino>
 //#######################################################################################################
 //#################################### Plugin 127: Teleinfo #############################################
@@ -105,7 +106,7 @@ boolean Plugin_127(byte function, struct EventStruct *event, String &string)
         P127_PORT = PCONFIG(0);
         P127_URL = String(deviceTemplate[1]);
         P127_indexes[P127_INDEX_IINST] = PCONFIG(1);
-        Serial.begin(1200, SERIAL_7E1); //Liaison série avec les paramètres
+        Serial1.begin(1200); //Liaison série avec les paramètres
         Plugin_127_init = true;
         success = true;
         break;
@@ -127,16 +128,16 @@ boolean Plugin_127(byte function, struct EventStruct *event, String &string)
 
         while (timeOut > 0)
         {
-            while (Serial.available())
+            while (Serial1.available())
             {
                 if (bytes_read < P127_BUFFER_SIZE)
                 {
-                    serial_buf[bytes_read] = Serial.read();
+                    serial_buf[bytes_read] = Serial1.read();
                     bytes_read++;
                 }
                 else
                 {
-                    Serial.read(); // when the buffer is full, just read remaining input, but do not store...
+                    Serial1.read(); // when the buffer is full, just read remaining input, but do not store...
                 }
                 timeOut = RXWait; // if serial received, reset timeout counter
             }
@@ -146,9 +147,9 @@ boolean Plugin_127(byte function, struct EventStruct *event, String &string)
 
         if (bytes_read == P127_BUFFER_SIZE) // if we have a full buffer, drop the last position to stuff with string end marker
         {
-            while (Serial.available())
+            while (Serial1.available())
             { // read possible remaining data to avoid sending rubbish...
-                Serial.read();
+                Serial1.read();
             }
             bytes_read--;
 
