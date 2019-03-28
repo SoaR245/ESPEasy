@@ -342,7 +342,7 @@ ControllerDelayHandlerStruct<MQTT_queue_element> MQTTDelayHandler;
                   MakeControllerSettings(ControllerSettings); \
                   LoadControllerSettings(element->controller_idx, ControllerSettings); \
                   C##NNN##_DelayHandler.configureControllerSettings(ControllerSettings); \
-                  if (!WiFiConnected(100)) { \
+                  if (!WiFiConnected(10)) { \
                     scheduleNextDelayQueue(TIMER_C##NNN##_DELAY_QUEUE, C##NNN##_DelayHandler.getNextScheduleTime()); \
                     return; \
                   } \
@@ -710,7 +710,8 @@ bool send_via_http(const String& logIdentifier, WiFiClient& client, const String
       if (line.startsWith(F("HTTP/1.1 2")))
       {
         success = true;
-#ifndef BUILD_NO_DEBUG
+        // Leave this debug info in the build, regardless of the
+        // BUILD_NO_DEBUG flags.
         if (loglevelActiveFor(LOG_LEVEL_DEBUG)) {
           String log = F("HTTP : ");
           log += logIdentifier;
@@ -718,7 +719,6 @@ bool send_via_http(const String& logIdentifier, WiFiClient& client, const String
           log += line;
           addLog(LOG_LEVEL_DEBUG, log);
         }
-#endif
       } else if (line.startsWith(F("HTTP/1.1 4"))) {
         if (loglevelActiveFor(LOG_LEVEL_ERROR)) {
           String log = F("HTTP : ");
