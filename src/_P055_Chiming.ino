@@ -49,6 +49,8 @@
 
 //#include <*.h>   - no external lib required
 
+#include "_Plugin_Helper.h"
+
 #define PLUGIN_055
 #define PLUGIN_ID_055         55
 #define PLUGIN_NAME_055       "Notify - Chiming [TESTING]"
@@ -250,12 +252,12 @@ boolean Plugin_055(byte function, struct EventStruct *event, String& string)
             break;
 
           String tokens = "";
-          byte hours = hour();
-          byte minutes = minute();
+          byte hours = node_time.hour();
+          byte minutes = node_time.minute();
 
           if (Plugin_055_Data->chimeClock)
           {
-            char tmpString[8];
+            char tmpString[8] = {0};
 
             sprintf_P(tmpString, PSTR("%02d%02d"), hours, minutes);
             if (Plugin_055_ReadChime(tmpString, tokens))
@@ -461,7 +463,7 @@ void Plugin_055_WriteChime(const String& name, const String& tokens)
   log += fileName;
   log += ' ';
 
-  fs::File f = SPIFFS.open(fileName, "w");
+  fs::File f = tryOpenFile(fileName, "w");
   if (f)
   {
     f.print(tokens);
@@ -484,9 +486,10 @@ byte Plugin_055_ReadChime(const String& name, String& tokens)
   log += ' ';
 
   tokens = "";
-  fs::File f = SPIFFS.open(fileName, "r+");
+  fs::File f = tryOpenFile(fileName, "r");
   if (f)
   {
+    tokens.reserve(f.size());
     char c;
     while (f.available())
     {

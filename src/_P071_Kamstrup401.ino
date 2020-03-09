@@ -12,6 +12,8 @@
 
 
 #include <ESPeasySerial.h>
+#include "_Plugin_Helper.h"
+
 #define PLUGIN_071
 #define PLUGIN_ID_071 71
 #define PLUGIN_NAME_071 "Communication - Kamstrup Multical 401 [TESTING]"
@@ -60,6 +62,13 @@ boolean Plugin_071(byte function, struct EventStruct *event, String& string)
     case PLUGIN_GET_DEVICEGPIONAMES:
       {
         serialHelper_getGpioNames(event);
+        break;
+      }
+
+    case PLUGIN_WEBFORM_SHOW_CONFIG:
+      {
+        string += serialHelper_getSerialTypeLabel(event);
+        success = true;
         break;
       }
 

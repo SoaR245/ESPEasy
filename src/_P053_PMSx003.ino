@@ -11,6 +11,7 @@
 
 
 #include <ESPeasySerial.h>
+#include "_Plugin_Helper.h"
 
 #define PLUGIN_053
 #define PLUGIN_ID_053 53
@@ -195,6 +196,13 @@ boolean Plugin_053(byte function, struct EventStruct *event, String& string)
       {
         serialHelper_getGpioNames(event);
         event->String3 = formatGpioName_output(F("Reset"));
+        break;
+      }
+
+    case PLUGIN_WEBFORM_SHOW_CONFIG:
+      {
+        string += serialHelper_getSerialTypeLabel(event);
+        success = true;
         break;
       }
 

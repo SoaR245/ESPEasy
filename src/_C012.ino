@@ -9,13 +9,13 @@
 #define CPLUGIN_ID_012         12
 #define CPLUGIN_NAME_012       "Blynk HTTP [TESTING]"
 
-bool CPlugin_012(byte function, struct EventStruct *event, String& string)
+bool CPlugin_012(CPlugin::Function function, struct EventStruct *event, String& string)
 {
   bool success = false;
 
   switch (function)
   {
-    case CPLUGIN_PROTOCOL_ADD:
+    case CPlugin::Function::CPLUGIN_PROTOCOL_ADD:
       {
         Protocol[++protocolCount].Number = CPLUGIN_ID_012;
         Protocol[protocolCount].usesMQTT = false;
@@ -26,19 +26,21 @@ bool CPlugin_012(byte function, struct EventStruct *event, String& string)
         break;
       }
 
-    case CPLUGIN_GET_DEVICENAME:
+    case CPlugin::Function::CPLUGIN_GET_DEVICENAME:
       {
         string = F(CPLUGIN_NAME_012);
         break;
       }
 
-     case CPLUGIN_PROTOCOL_SEND:
+     case CPlugin::Function::CPLUGIN_PROTOCOL_SEND:
       {
         // Collect the values at the same run, to make sure all are from the same sample
         byte valueCount = getValueCountFromSensorType(event->sensorType);
         C012_queue_element element(event, valueCount);
-        if (ExtraTaskSettings.TaskIndex != event->TaskIndex)
-          PluginCall(PLUGIN_GET_DEVICEVALUENAMES, event, dummyString);
+        if (ExtraTaskSettings.TaskIndex != event->TaskIndex) {
+          String dummy;
+          PluginCall(PLUGIN_GET_DEVICEVALUENAMES, event, dummy);
+        }
 
         MakeControllerSettings(ControllerSettings);
         LoadControllerSettings(event->ControllerIndex, ControllerSettings);
@@ -59,6 +61,17 @@ bool CPlugin_012(byte function, struct EventStruct *event, String& string)
         scheduleNextDelayQueue(TIMER_C012_DELAY_QUEUE, C012_DelayHandler.getNextScheduleTime());
         break;
       }
+
+    case CPlugin::Function::CPLUGIN_FLUSH:
+      {
+        process_c012_delay_queue();
+        delay(0);
+        break;
+      }
+
+    default:
+      break;
+
   }
   return success;
 }
@@ -66,6 +79,12 @@ bool CPlugin_012(byte function, struct EventStruct *event, String& string)
 //********************************************************************************
 // Process Queued Blynk request, with data set to NULL
 //********************************************************************************
+
+// Uncrustify may change this into multi line, which will result in failed builds
+// *INDENT-OFF*
+bool do_process_c012_delay_queue(int controller_number, const C012_queue_element& element, ControllerSettingsStruct& ControllerSettings);
+// *INDENT-ON*
+
 bool do_process_c012_delay_queue(int controller_number, const C012_queue_element& element, ControllerSettingsStruct& ControllerSettings) {
   while (element.txt[element.valuesSent] == "") {
     // A non valid value, which we are not going to send.
@@ -73,13 +92,13 @@ bool do_process_c012_delay_queue(int controller_number, const C012_queue_element
     if (element.checkDone(true))
       return true;
   }
-  if (wifiStatus != ESPEASY_WIFI_SERVICES_INITIALIZED) {
+  if (!WiFiConnected()) {
     return false;
   }
   return element.checkDone(Blynk_get(element.txt[element.valuesSent], element.controller_idx));
 }
 
-boolean Blynk_get(const String& command, byte controllerIndex, float *data )
+boolean Blynk_get(const String& command, controllerIndex_t controllerIndex, float *data )
 {
   MakeControllerSettings(ControllerSettings);
   LoadControllerSettings(controllerIndex, ControllerSettings);

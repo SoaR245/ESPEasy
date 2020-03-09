@@ -18,6 +18,7 @@
 #define PLUGIN_VALUENAME2_056 "PM10"    // Dust <10µm in µg/m³
 
 #include <jkSDS011.h>
+#include "_Plugin_Helper.h"
 
 
 CjkSDS011 *Plugin_056_SDS = NULL;
@@ -63,6 +64,13 @@ boolean Plugin_056(byte function, struct EventStruct *event, String& string)
     case PLUGIN_GET_DEVICEGPIONAMES:
       {
         serialHelper_getGpioNames(event, false, true); // TX optional
+        break;
+      }
+
+    case PLUGIN_WEBFORM_SHOW_CONFIG:
+      {
+        string += serialHelper_getSerialTypeLabel(event);
+        success = true;
         break;
       }
 
